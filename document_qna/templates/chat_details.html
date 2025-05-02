@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Details</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* General Styling */
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #f4f8fc;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #dde8f0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #0056b3;
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filters input, .filters select {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #c5d9eb;
+            border-radius: 8px;
+            width: 30%;
+        }
+
+        .filters button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .filters button:hover {
+            background: #0056b3;
+        }
+
+        /* Chat Cards */
+        .chat-card {
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border: 2px solid #c5d9eb;
+            background: #ffffff;
+        }
+
+        .chat-card.unresolved { background: #ffdddd; } /* Red for unresolved */
+        .chat-card.resolved, .chat-card.no_action_required { background: #d4f5d4; } /* Green for resolved */
+        .chat-card.in_progress { background: #fff8b3; } /* Yellow for in progress */
+
+        .chat-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0ebf5;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .query-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 12px;
+        }
+
+        .answer-box {
+            background: #eef4fc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 6px solid #007bff;
+            margin-bottom: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .remarks textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #c5d9eb;
+            border-radius: 8px;
+            resize: vertical;
+            background: white;
+            color: #333;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .status-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #c5d9eb;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 16px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .status-select:hover {
+            border-color: #007bff;
+        }
+
+        .btn-update {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #007bff;
+            color: white;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .btn-update:hover {
+            background: #0056b3;
+            transform: scale(1.03);
+        }
+        .timestamp {
+            font-size: 14px;
+            color: #666;
+        }
+        .docs {
+            margin-top: 12px;
+            border: 2px solid #c5d9eb;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .docs a {
+            display: block;
+            color: #007bff;
+            font-weight: bold;
+            text-decoration: none;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .docs a:hover {
+            text-decoration: underline;
+        }
+        .remarks-textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        resize: vertical;
+        transition: all 0.3s ease-in-out;
+        outline: none;
+        background-color: #fafafa;
+        box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .remarks-textarea:focus {
+        border-color: #007bff;
+        background-color: white;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .textarea-container {
+        margin-top: 10px;
+        position: relative;
+    }
+
+    .textarea-label {
+        position: absolute;
+        top: 5px;
+        left: 12px;
+        font-size: 12px;
+        color: #888;
+        background: white;
+        padding: 0 5px;
+        transition: all 0.3s ease-in-out;
+        pointer-events: none;
+    }
+
+    .remarks-textarea:focus + .textarea-label,
+    .remarks-textarea:not(:placeholder-shown) + .textarea-label {
+        top: -10px;
+        font-size: 12px;
+        color: #007bff;
+    }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .chat-card {
+                padding: 20px;
+            }
+
+            .status-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Chat Details</h2>
+        <!-- Filter Section -->
+        <div class="filters">
+            <input type="date" id="startDate" placeholder="Start Date">
+            <input type="date" id="endDate" placeholder="End Date">
+            <select id="filterStatus">
+                <option value="">All Status</option>
+                <option value="unresolved">Unresolved</option>
+                <option value="resolved">Resolved</option>
+                <option value="no_action_required">No Action Required</option>
+                <option value="in_progress">In Progress</option>
+            </select>
+            <button onclick="applyFilters()">Apply Filters</button>
+        </div>
+
+        {% if error %}
+            <p style="color: red; text-align: center;">{{ error }}</p>
+        {% else %}
+            {% for query in queries %}
+                <div class="chat-card" id="chatCard_{{ query.id }}">
+                    <div class="card-header">
+                        <span class="agent-name">{{ query.TMS_agent }}</span>
+                        <div class="timestamp">{{ query.timestamp }}</div>
+                        <span class="status">
+                            <select name="status_{{ query.id }}" class="status-select"
+                                    onchange="updateCardColor(this, 'chatCard_{{ query.id }}')"
+                                    data-default="{{ query.status }}">
+                                <option value="unresolved" {% if query.status == "unresolved" %}selected{% endif %}>Unresolved</option>
+                                <option value="resolved" {% if query.status == "resolved" %}selected{% endif %}>Resolved</option>
+                                <option value="no_action_required" {% if query.status == "no_action_required" %}selected{% endif %}>No Action Required</option>
+                                <option value="in_progress" {% if query.status == "in_progress" %}selected{% endif %}>In Progress</option>
+                            </select>
+                        </span>
+                    </div>
+
+                    <div class="query-text">Query: {{ query.query }}</div>
+
+                    <div class="answer-box">
+                        <strong>Team Answer:</strong> {{ query.answer_by_team|default:"None" }}
+                    </div>
+
+                    <div class="answer-box">
+                        <strong>LLM Answer:</strong>
+                        <div style="max-height: 180px; overflow-y: auto; word-wrap: break-word;">
+                            {{ query.llm_answer|default:"-" }}
+                        </div>
+                    </div>
+
+                    <div class="docs">
+                        <strong>Irrelevant Documents:</strong>
+                        {% for doc in irrelevant_documents %}
+                            {% if doc.q_id.id == query.id %}
+                                <a href="{{ doc.file_path }}" target="_blank">
+                                    {{ doc.title|default:"View Document" }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="textarea-container">
+                      <textarea id="remarks_{{ query.id }}" class="remarks-textarea" placeholder="Enter remarks... ">{{ query.remarks }}</textarea>
+                      
+                  </div>
+
+                    <button class="btn-update" onclick="updateStatus('{{ query.id }}')">Update</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+        function updateCardColor(selectElement, cardId) {
+            let card = document.getElementById(cardId);
+            card.className = "chat-card " + selectElement.value;
+        }
+        function updateStatus(queryId) {
+            let status = document.querySelector(`select[name="status_${queryId}"]`).value;
+            let remarks = document.getElementById(`remarks_${queryId}`).value;
+
+            fetch("/api/update-query-status/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ query_id: queryId, status: status.replace("status-", ""), remarks: remarks })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert("Status updated successfully!");
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            });
+        }
+       function applyFilters() {
+    let startDateInput = document.getElementById('startDate').value;
+    let endDateInput = document.getElementById('endDate').value;
+    let filterStatus = document.getElementById('filterStatus').value.toLowerCase();
+
+    let startDate = startDateInput ? new Date(startDateInput) : null;
+    let endDate = endDateInput ? new Date(endDateInput) : null;
+
+    document.querySelectorAll('.chat-card').forEach(card => {
+        let dateAttr = card.getAttribute('data-date');
+        let statusAttr = card.getAttribute('data-status');
+
+        // If either attribute is missing, skip this card
+        if (!dateAttr || !statusAttr) {
+            console.warn("Missing data attribute on card:", card);
+            return;
+        }
+
+        let cardDate = new Date(dateAttr);
+        let cardStatus = statusAttr.toLowerCase();
+
+        if (!isNaN(cardDate.getTime())) {
+            let show = (!filterStatus || filterStatus === cardStatus) &&
+                       (!startDate || cardDate >= startDate) &&
+                       (!endDate || cardDate <= endDate);
+            card.style.display = show ? 'block' : 'none';
+        }
+    });
+}
+
+
+        window.onload = function () {
+            document.querySelectorAll('.status-select').forEach(selectElement => {
+                let cardId = "chatCard_" + selectElement.name.split("_")[1];
+                updateCardColor(selectElement, cardId);
+            });
+        };
+    </script>
+</body>
+</html>

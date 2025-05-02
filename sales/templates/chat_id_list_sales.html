@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
+    <style>
+    :root {
+  --primary: #1e40af; /* Deep Blue-800 */
+  --primary-light: #3b82f6; /* Sky Blue-500 */
+  --accent: #9333ea; /* Violet-600 */
+  --secondary: #f8fafc; /* Soft Light */
+  --white: #ffffff;
+  --gray: #d1d5db;
+  --dark: #111827;
+  --text: #374151;
+  --bg: var(--white);
+  --radius: 14px;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Smooth scroll for all overflow */
+body, .chat-list, .chat-detail-container {
+  scroll-behavior: smooth;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: #f8fafc;
+  color: var(--dark);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.4s ease;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+.sidebar h2 {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  text-align: center;
+  color: var(--primary);
+  background-color: var(--white);
+  padding: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--gray);
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3);
+}
+
+.filters button {
+  background-color: var(--white);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  border-radius: 6px;
+}
+
+.filters button:hover {
+  background-color: var(--primary);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.chat-list {
+  list-style: none;
+  overflow-y: auto;
+  flex-grow: 1;
+  margin-top: 8px;
+  padding-right: 4px;
+}
+
+.chat-item {
+  background-color: var(--white);
+  color: var(--text);
+  margin-bottom: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chat-item:hover,
+.chat-item.active {
+  background-color: var(--primary-light);
+  font-weight: 600;
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.header h3 {
+  font-size: 1.6rem;
+  margin-bottom: 16px;
+  border-left: 6px solid var(--primary);
+  padding-left: 12px;
+  display: inline-block;
+}
+
+.extra-filters {
+  background-color: var(--white);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  border: 1px dashed var(--primary);
+  animation: popIn 0.5s ease forwards;
+}
+
+.stats-container {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stats-container th,
+.stats-container td {
+  border: 1px solid var(--gray);
+  padding: 12px;
+  text-align: center;
+  transition: background-color 0.3s;
+}
+
+.stats-container th {
+  background-color: var(--primary-light);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.stats-container tr:hover {
+  background: var(--secondary);
+}
+
+.chat-detail-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+#chatListScrollContainer {
+  max-height: 60vh; /* or any fixed height */
+  overflow-y: auto;
+}
+
+.conversation-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+}
+.status-badge.edited {
+  background-color: #00796b;
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  float: right;
+  margin-left: 8px;
+  text-transform: uppercase;
+  border: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+.status-badge.status {
+  background-color: #3949ab; /* Default blue, change dynamically */
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 6px;
+  text-transform: uppercase;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  float:right;
+}
+
+
+.status-badge.status.resolved {
+  background-color: #2e7d32; /* Green */
+}
+
+.status-badge.status.unresolved {
+  background-color: #c62828; /* Red */
+}
+.collapsible-toggle {
+  background: #3b82f6;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  float: right;
+  transition: background 0.3s;
+}
+
+.collapsible-toggle:hover {
+  background: #2563eb;
+}
+
+#filtersSection.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+#filtersSection {
+  transition: all 0.5s ease;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.view-docs-btn {
+  background-color: #b5c4de;
+  border: none;
+  color: var(--white);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.view-docs-btn:hover {
+  background-color: #2563eb;
+}
+#unresolvedBtn {
+  background: #3b82f6;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  float: right;
+  transition: background 0.3s;
+}
+
+#unresolvedBtn:hover {
+  background-color: #0056b3;
+}
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  position: relative;
+  animation: fadeIn 0.3s ease forwards;
+}
+.chat-meta {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #4b5563; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.chat-bubble {
+
+  max-width: 100%;           /* Still control maximum width */
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  background: #f9fafb;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+/* LLM Bubble */
+.chat-bubble.llm {
+  background: #f1f5f9;
+  align-self: flex-start;
+  border-top-left-radius: 10px;
+  border: 1px solid #9eb4e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.chat-bubble.llm.green-bg {
+  background: #dcfce7; 
+  border: 1px solid #86efac;
+}
+.chat-bubble.llm.red-bg {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+}
+
+/* Team Bubble */
+.chat-bubble.team {
+  background: #e0f7fa;
+  align-self: flex-start;
+  border-top-right-radius: 10px;
+  border: 1px solid #80deea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Query Bubble */
+.chat-bubble.query {
+  background: #eef2ff;
+  align-self: center;
+  border: 1px solid #c7d2fe;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+
+.chat-timestamp {
+  font-size: 14px;
+  color: #9ca3af;
+  text-align: right;
+  margin-top: 8px;
+}
+
+.chat-meta-info {
+  font-size: 14px;
+  color: #6b7280;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.chat-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: flex-end;
+}
+
+.chat-actions select,
+.chat-actions textarea {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 100%;
+  background: #f9fafb;
+}
+
+.chat-actions .button-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.chat-actions button {
+  background: #b1bfd6;
+  color: rgb(110, 92, 92);
+  font-weight: 600;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.chat-actions button:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.chat-actions-inline {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.action-icon {
+  background: #f3f4f6;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s;
+  color: #6b7280; /* soft gray */
+  font-size: 18px;
+}
+
+.action-icon:hover {
+  color: #3b82f6; 
+  transform: scale(1.1);
+}
+
+.status-dropdown,
+.remarks-box {
+  margin-top: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #ffffff; /* PURE bright white background */
+  border: 1px solid #d1d5db; /* soft neutral border */
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* softer but deeper shadow */
+  transition: all 0.3s ease;
+}
+
+/* Dropdown select */
+.status-dropdown select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f9ff; /* Light vibrant blue background */
+  border: 1px solid #38bdf8; /* Sky blue border */
+  border-radius: 10px;
+  color: #0f172a; /* Deep slate text */
+  outline: none;
+  box-shadow: 0 1px 3px rgba(56, 189, 248, 0.2);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.status-dropdown select:focus {
+  border-color: #2563eb; /* vibrant blue on focus */
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+}
+
+/* Remarks textarea */
+.remarks-box textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-weight: 500;
+  background: #fef9c3; /* very light golden background */
+  border: 1px solid #facc15; /* soft golden border */
+  border-radius: 10px;
+  color: #78350f; /* warm dark text */
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  box-shadow: inset 0 1px 3px rgba(250, 204, 21, 0.3);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.remarks-box textarea:focus {
+  border-color: #eab308; /* darker golden on focus */
+  box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.25);
+}
+
+/* Character count */
+.remarks-box small {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #4b5563; /* medium dark */
+  text-align: right;
+}
+
+
+.status-dropdown select,
+.remarks-box textarea {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  resize: vertical;
+  background: #f9fafb;
+}
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+.query-hidden {
+  display: none !important;
+}
+
+.low-proximity {
+  background: #fee2e2; /* Light red background */
+  color: #991b1b; /* Dark red text */
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+
+.status-dropdown, .remarks-box {
+  margin-top: 10px;
+}
+.chat-message.resolved {
+  border-left: 4px solid #22c55e; /* Green */
+  background-color: #ecfdf5; /* Soft green background */
+}
+
+.chat-message.unresolved {
+  border-left: 4px solid #ef4444; /* Red */
+  background-color: #fef2f2; /* Soft red background */
+}
+
+.chat-message.in_progress {
+  border-left: 4px solid #facc15; /* Yellow */
+  background-color: #fefce8; /* Soft yellow background */
+}
+
+.chat-message.no_action_required {
+  border-left: 4px solid #60a5fa; /* Light Blue */
+  background-color: #eff6ff; /* Soft blue background */
+}
+.query-line {
+  font-size: 15px;
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.query-link {
+  color: #449dc9; 
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.query-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Smooth fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* Add little space between bubbles */
+.chat-bubble + .chat-bubble {
+  margin-top: 6px;
+}
+
+.update-feedback {
+  font-size: 12px;
+  color: #10b981;
+  margin-top: 4px;
+}
+#chatListTableWrapper {
+  max-height: 500px;  /* Set desired height */
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 auto;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+}
+
+#chatListTable table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 20px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  table-layout: fixed;
+  overflow: scroll;
+}
+
+#chatListTable th, #chatListTable td {
+  padding: 8px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+#chatListTable thead {
+  background: linear-gradient(to right, #4e54c8, #8f94fb);
+  color: #fff;
+  font-size: 16px;
+}
+
+#chatListTable tbody tr:nth-child(even) {
+  background-color: #f6f8ff;
+}
+
+#chatListTable tbody tr:hover {
+  background-color: #eaf2ff;
+}
+
+#chatListTable td a {
+  color: #3b45f2;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+#chatListTable td a:hover {
+  color: #2328a3;
+  text-decoration: underline;
+}
+
+
+
+/* === POPUP CONTAINER === */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* FADE-IN ANIMATION */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* === POPUP CONTENT === */
+.popup-content {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* === HEADER === */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.popup-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* === CLOSE BUTTON === */
+.close-btn {
+  font-size: 22px;
+  font-weight: bold;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #f43f5e;
+}
+
+/* === DOCUMENT BLOCK === */
+.popup-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.popup-body li {
+  background: #b6c5d3;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* === TEXTAREA === */
+textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: monospace;
+  background-color: #f1f5f9;
+  color: #1f2937;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+}
+
+/* SCROLLBAR */
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+/* SCROLLBAR - modern gray tone */
+textarea::-webkit-scrollbar-thumb {
+  background: #94a3b8; /* neutral blue-gray */
+  border-radius: 6px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: #f1f5f9; /* light background */
+}
+
+/* === BUTTON === */
+.update-embedding-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+.update-embedding-btn:hover {
+  background-color: #1d4ed8;
+}
+.feedback-message {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  transition: opacity 0.3s ease;
+  min-height: 20px; /* Prevent layout shift */
+}
+
+.feedback-message.success {
+  color: green;
+}
+
+.feedback-message.error {
+  color: red;
+}
+
+.feedback-message.warning {
+  color: orange;
+}
+
+
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters input,
+  .filters select,
+  .filters button {
+    flex: 1 1 100%;
+  }
+
+  .query-block {
+    flex-direction: column;
+  }
+
+  .metadata-section {
+    flex: 1;
+  }
+}
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 6px;
+  border: 3px solid #f1f5f9;
+  transition: background 0.3s, transform 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-light);
+  transform: scale(1.1);
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="sidebar">
+        <h2>Chat IDs</h2>
+        <div class="filters">
+          <input
+            type="text"
+            id="chatDateRangePicker"
+            placeholder="Select Date Range"
+            readonly
+            style="width: 100%"
+          />
+          <button onclick="fetchChatIDs()">Go</button>
+          <button id="loadProxyChatsBtn" >Load High Proxy Chats</button>
+          <div id="chatListTableWrapper">
+          <div id="chatListTable"></div>
+          </div>
+          <div id="chatListScrollContainer">
+            <ul class="chat-list" id="chat_list"></ul>
+          </div>
+      </div>
+    </div>
+  
+      <div class="main-content">
+        <div class="header">
+          <h3>Chat Dashboard</h3>
+  <button class="collapsible-toggle" onclick="toggleFilters()">Show Filters & Stats</button> 
+  <button id="unresolvedBtn" onclick="loadUnresolvedQueries()">Show Unresolved Queries</button>
+  <a id="chatLinkDisplay" style="font-weight: bold; font-size: 14px; color: #007bff; margin-left: 10px; display: inline-block;"></a>
+</div>
+
+        <div class="collapsible-container">   
+          <div class="extra-filters" id="filtersSection">
+            <div class="filters">
+              <input type="date" id="startDate" placeholder="Start Date" />
+              <input type="date" id="endDate" placeholder="End Date" />
+              <select id="filterStatus">
+                <option value="">All Status</option>
+                <option value="unresolved">Unresolved</option>
+                <option value="resolved">Resolved</option>
+                <option value="no_action_required">No Action Required</option>
+                
+              </select>
+              <button onclick="applyQueryFilters()">Apply Filters</button>
+            </div>
+        
+            <table class="stats-container">
+              <tr>
+                <th>Total Queries</th>
+                <th>Used Queries</th>
+                <th>Edited Queries</th>
+                <th>Flagged Queries</th>
+                <th>Resolved</th>
+                <th>Unresolved</th>
+              </tr>
+              <tr>
+                <td id="totalQueries">0</td>
+                <td id="usedQueries">0</td>
+                <td id="editedQueries">0</td>
+                <td id="flaggedQueries">0</td>
+                <td id="resolvedQueries">0</td>
+                <td id="unresolvedQueries">0</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        
+        <div class="chat-detail-container">
+          <div id="loadingSpinner" style="display: none; text-align: center; margin: 20px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #007bff;"></i>
+            <span>Loading queries...</span>
+          </div>
+          <div class="conversation-thread" id="chat_result">
+            <!-- Each query block will be injected here -->
+            Select a chat to view conversation...
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  
+
+  <script>
+    // Initialize date range picker
+    const chatPicker = new Litepicker({
+      element: document.getElementById("chatDateRangePicker"),
+      singleMode: false,
+      format: "YYYY-MM-DD",
+      autoApply: true,
+    });
+ // Function to apply query filters based on date range and status
+ function applyQueryFilters() {
+  const startDateInput = document.getElementById("startDate").value;
+  const endDateInput = document.getElementById("endDate").value;
+  const filterStatus = document.getElementById("filterStatus").value.toLowerCase();
+
+  const startDate = startDateInput ? new Date(startDateInput) : null;
+  const endDate = endDateInput ? new Date(endDateInput) : null;
+
+  // Normalize time ranges
+  if (startDate) {
+    startDate.setHours(0, 0, 0, 0);
+  }
+  if (endDate) {
+    endDate.setHours(23, 59, 59, 999);
+  }
+
+  let total = 0;
+  let resolved = 0;
+  let unresolved = 0;
+  let used = 0;
+  let edited = 0;
+  let flagged = 0;
+
+  document.querySelectorAll("[data-query-id]").forEach((block) => {
+    const timestamp = block.getAttribute("data-date");
+    const status = block.getAttribute("data-status")?.toLowerCase();
+    const isUsed = block.getAttribute("data-is-used") === "true";
+    const isEdited = block.getAttribute("data-is-edited") === "true";
+    const isFlagged = block.getAttribute("data-is-flagged") === "true";
+    const date = timestamp ? new Date(timestamp) : null;
+
+    const matchDate = (!startDate || (date && date >= startDate)) &&
+                      (!endDate || (date && date <= endDate));
+    const matchStatus = !filterStatus || status === filterStatus;
+
+    const shouldShow = matchDate && matchStatus;
+
+    if (shouldShow) {
+      block.style.display = "block";
+      block.classList.remove("query-hidden");
+
+      total++;
+      if (status === "resolved") resolved++;
+      if (status === "unresolved") unresolved++;
+      if (isUsed) used++;
+      if (isEdited) edited++;
+      if (isFlagged) flagged++;
+    } else {
+      block.style.display = "none";
+      block.classList.add("query-hidden");
+    }
+  });
+
+  // Update counters
+  document.getElementById("totalQueries").textContent = total;
+  document.getElementById("resolvedQueries").textContent = resolved;
+  document.getElementById("unresolvedQueries").textContent = unresolved;
+  document.getElementById("usedQueries").textContent = used;
+  document.getElementById("editedQueries").textContent = edited;
+  document.getElementById("flaggedQueries").textContent = flagged;
+
+  if (total === 0) {
+    alert("No queries match your filter.");
+  }
+}
+function toggleFilters() {
+  const section = document.getElementById("filtersSection");
+  const button = document.querySelector(".collapsible-toggle");
+  section.classList.toggle("collapsed");
+  
+  if (section.classList.contains("collapsed")) {
+    button.textContent = "Show Filters & Stats";
+  } else {
+    button.textContent = "Hide Filters & Stats";
+  }
+}
+
+// Fetch chat IDs for the selected date range
+function fetchChatIDs() {
+  const dateRange = $("#chatDateRangePicker").val();
+  const [fromDate, toDate] = dateRange.split(" - ") || [];
+  $("#chatListTableWrapper").empty(); 
+  let url = `/sales/api/list-chat-ids/sales/`;
+  const params = [];
+
+  if (fromDate) {
+    params.push(`from_date=${encodeURIComponent(fromDate)}`);
+  }
+
+  if (toDate) {
+    params.push(`to_date=${encodeURIComponent(toDate)}`);
+  }
+
+  if (params.length > 0) {
+    url += "?" + params.join("&");
+  }
+
+  $.ajax({
+    url: url,
+    method: "GET",
+    success: function (response) {
+      const list = $("#chat_list");
+      list.empty();
+
+      response.chat_ids.forEach((chat, index) => {
+        const chatItem = `<li class="chat-item" data-id="${chat.chat_id}">${index + 1}. ${chat.chat_id}</li>`;
+        list.append(chatItem);
+      });
+
+      $(".chat-item").on("click", function () {
+        $(".chat-item").removeClass("active");
+        $(this).addClass("active");
+
+        const chatId = $(this).data("id");
+        loadChatDetails(chatId);  
+      });
+    },
+    error: function () {
+      alert("Error fetching chat data");
+    },
+  });
+}
+
+// Escape HTML to prevent XSS attacks
+function escapeHtml(text) {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function toggleQueryBody(element) {
+  const body = element.closest('.query-block').querySelector('.query-block-body');
+  
+  // Toggle visibility between .visible and .hidden
+  if (body.classList.contains('hidden')) {
+    body.classList.remove('hidden');
+    body.classList.add('visible');
+  } else {
+    body.classList.remove('visible');
+    body.classList.add('hidden');
+  }
+}
+
+function updateCharCount(id) {
+  const val = document.getElementById(`remarks_${id}`).value;
+  document.getElementById(`char_count_${id}`).innerText = `${val.length}/300`;
+}
+function formatTimestamp(isoString) {
+  const date = new Date(isoString);
+  const options = {
+    year: "numeric",
+    month: "short",  // use "long" for full month name
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,    // set to false for 24-hour format
+  };
+  return date.toLocaleString("en-US", options);
+}
+$(document).ready(function() {
+    $('#loadProxyChatsBtn').click(function() {
+        $.ajax({
+          
+            url: `/sales/api/high-proxy-report`,  
+            method: 'GET',
+            success: function(chats) {
+                
+                var html = '<table border="1" style="width:100%;">';
+                html += '<thead><tr><th>Chat ID</th><th>Agent Name</th></tr></thead><tbody>';
+                $.each(chats, function(index, chat) {
+                    html += '<tr>';
+                      html += '<td><a href="#" onclick="loadChatDetails(\'' + chat.chat_id + '\')">' + chat.chat_id + '</a></td>';
+                    html += '<td>' + chat.TMS_agent + '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                $('#chatListTable').html(html);
+            },
+            error: function() {
+                $('#chatListTable').html('<p>Error loading chat list.</p>');
+            }
+        });
+    });
+});
+
+// Load chat details and populate UI
+function loadChatDetails(chatId) {
+  // Reset the stats to 0 when loading a new chat
+  document.getElementById("totalQueries").textContent = "0";
+  document.getElementById("resolvedQueries").textContent = "0";
+  document.getElementById("unresolvedQueries").textContent = "0";
+  document.getElementById("usedQueries").textContent = "0";
+  document.getElementById("editedQueries").textContent = "0";
+  document.getElementById("flaggedQueries").textContent = "0";
+
+  $.ajax({
+    url: `/sales/chat-details/sales/${chatId}`,
+    method: "GET",
+    success: function (response) {
+      if (!response.success) {
+        $("#chat_result").html("Failed to load chat.");
+        return;
+      }
+
+      const queries = response.queries;
+      const documents = response.documents;
+      const stats = response.statistics;
+      const resultDiv = $("#chat_result");
+      resultDiv.empty();
+
+      // Get the chat link from the first query 
+      const chatLink = response.chat_link 
+      const chatLinkDisplay = document.getElementById("chatLinkDisplay");
+
+      if (chatLink && chatLink !== "N/A" && chatLink !== "No link available") {
+        chatLinkDisplay.href = chatLink;
+        chatLinkDisplay.textContent = chatLink;
+        chatLinkDisplay.target = "_blank"; 
+      } else {
+        chatLinkDisplay.textContent = "No link available";
+        chatLinkDisplay.removeAttribute("href"); 
+      }
+ // Update statistics using backend data
+      document.getElementById("totalQueries").textContent = stats.total_queries;
+      document.getElementById("resolvedQueries").textContent = stats.resolved_queries;
+      document.getElementById("unresolvedQueries").textContent = stats.unresolved_queries;
+      document.getElementById("usedQueries").textContent = stats.used_queries;
+      document.getElementById("editedQueries").textContent = stats.edited_queries;
+      document.getElementById("flaggedQueries").textContent = stats.flagged_queries;
+  if(queries.length > 0){
+      // Render the query blocks
+      queries.forEach((q) => {
+        const statusClass = getStatusClass(q.status);
+
+const block = `
+  <div data-query-id="${q.id}"
+       data-date="${q.timestamp}" 
+       data-status="${q.status}" 
+       data-is-used="${q.is_used}" 
+       data-is-edited="${q.is_edited}" 
+       data-is-flagged="${q.is_flagged}">
+
+    <!-- Query Text -->
+    <div class="chat-bubble query">
+      <p>
+        <strong>Query:</strong> ${escapeHtml(q.query)}
+        ${q.is_edited === true ? '<span class="status-badge edited">Edited</span>' : ''}
+        <span class="status-badge status ${q.status.toLowerCase().replace(/\s/g, "-")}" id="status-label-${q.id}">
+          ${q.status}
+        </span>
+      </p>
+      <div class="chat-timestamp">${q.timestamp ? formatTimestamp(q.timestamp) : "N/A"}</div>
+    </div>
+
+    <!-- LLM Answer -->
+    <div class="chat-bubble llm ${getStatusClass(q.status)}">
+      <p><strong>LLM: </strong>${escapeHtml(q.llm_answer) || "-"}</p>
+    </div>
+
+    <!-- Team/Agent Answer -->
+    <div class="chat-bubble team">
+      <p><strong>${escapeHtml(q.TMS_agent) || "Agent"}: </strong>${escapeHtml(q.answer_by_team) || "Not Provided"}</p>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="chat-meta-info">
+      <span><strong>Proximity:</strong> ${q.answer_proximity || "N/A"}</span> |
+      <span><strong>Remarks:</strong> ${q.remarks || "N/A"}</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="chat-actions-container">
+        <div class="chat-actions-inline">
+          <div class="action-icon" onclick="toggleStatusDropdown(this)" title="Change Status">
+            <i class="fas fa-tasks"></i>
+          </div>
+          <div class="action-icon" onclick="toggleRemarksInput(this)" title="Add Remarks">
+            <i class="fas fa-comment-dots"></i>
+          </div>
+          <div class="action-icon" onclick="updateStatus(${q.id})" title="Update Status">
+            <i class="fas fa-save"></i>
+          </div>
+          <div class="action-icon view-docs-btn" title="View Source Documents" query-id="${q.id}">
+            <i class="fas fa-file-alt"></i>
+          </div>
+        </div>
+
+        <div class="status-dropdown hidden">
+          <select id="status_${q.id}">
+            ${['Unresolved', 'Resolved', 'In Progress', 'No Action Required']
+              .filter(status => status === q.status)
+              .concat(['Unresolved', 'Resolved', 'No Action Required'].filter(status => status !== q.status))
+              .map(status => `<option ${status === q.status ? "selected" : ""}>${status}</option>`)
+              .join('')}
+          </select>
+        </div>
+
+        <div class="remarks-box hidden">
+          <textarea id="remarks_${q.id}" oninput="updateCharCount(${q.id})" placeholder="Add remarks...">${escapeHtml(q.remarks) || ""}</textarea>
+          <small id="char_count_${q.id}">${(q.remarks || "").length}/300</small>
+        </div>
+
+        <span class="update-feedback" id="feedback_${q.id}"></span>
+    </div>
+  </div>
+`;
+
+resultDiv.append(block);
+
+      });
+    }
+
+      $("#chat_result").data("all-docs", documents);
+    },
+    error: function (xhr, status, error) {
+              console.log("Error Status:", status);
+              console.log("XHR Response:", xhr.responseText);
+              console.log("Error Thrown:", error);
+            },
+  });
+}
+function toggleStatusDropdown(element) {
+  const container = element.closest(".chat-actions-container");
+  if (!container) return;
+
+  const dropdown = container.querySelector(".status-dropdown");
+  if (dropdown) {
+    dropdown.classList.toggle("visible");
+  }
+}
+
+function toggleRemarksInput(element) {
+  const container = element.closest(".chat-actions-container");
+  if (!container) return;
+
+  const remarks = container.querySelector(".remarks-box");
+  if (remarks) {
+    remarks.classList.toggle("visible");
+  }
+}
+function loadUnresolvedQueries() {
+  // Show spinner
+  document.getElementById("loadingSpinner").style.display = "block";
+  const resultDiv = $("#chat_result");
+  resultDiv.empty();
+  // Reset stats before loading new data
+  document.getElementById("totalQueries").textContent = "0";
+  document.getElementById("resolvedQueries").textContent = "0";
+  document.getElementById("unresolvedQueries").textContent = "0";
+  document.getElementById("usedQueries").textContent = "0";
+  document.getElementById("editedQueries").textContent = "0";
+  document.getElementById("flaggedQueries").textContent = "0";
+
+  $.ajax({
+    url: `/sales/api/unresolved-queries/`,
+    method: "GET",
+    success: function (response) {
+      
+      resultDiv.empty();
+      $("#loadingSpinner").hide(); // Hide spinner
+
+      if (!response.success) {
+        resultDiv.html("Failed to load queries.");
+        return;
+      }
+
+      const queries = response.queries;
+      const documents = response.documents;
+      const stats = response.statistics;
+
+      const chatLinkDisplay = document.getElementById("chatLinkDisplay");
+      chatLinkDisplay.textContent = "No link available";
+      chatLinkDisplay.removeAttribute("href");
+
+      // Update stats
+      document.getElementById("totalQueries").textContent = stats.total_queries;
+      document.getElementById("resolvedQueries").textContent = stats.resolved_queries;
+      document.getElementById("unresolvedQueries").textContent = stats.unresolved_queries;
+      document.getElementById("usedQueries").textContent = stats.used_queries;
+      document.getElementById("editedQueries").textContent = stats.edited_queries;
+      document.getElementById("flaggedQueries").textContent = stats.flagged_queries;
+
+      if (queries.length > 0) {
+        queries.forEach((q) => {
+          if (!q.id) {
+  console.warn("Missing query ID for query:", q);
+}
+const block = `
+  <div data-query-id="${q.id}"
+       data-date="${q.timestamp}" 
+       data-status="${q.status}" 
+       data-is-used="${q.is_used}" 
+       data-is-edited="${q.is_edited}" 
+       data-is-flagged="${q.is_flagged}">
+
+    <!-- Query Text -->
+    <div class="chat-bubble query">
+      <p class="query-line">
+    <strong>Query: </strong>
+    <span class="query-link" onclick="loadChatDetails('${q.chat_id}')">${escapeHtml(q.query)}</span>
+      ${q.is_edited === true ? '<span class="status-badge edited">Edited</span>' : ''}
+        <span class="status-badge status ${q.status.toLowerCase().replace(/\s/g, "-")}" id="status-label-${q.id}">
+          ${q.status}
+</p>
+      <div class="chat-timestamp">${q.timestamp ? formatTimestamp(q.timestamp) : "N/A"}</div>
+    </div>
+
+    <!-- LLM Answer -->
+    <div class="chat-bubble llm ${getStatusClass(q.status)}">
+      <p><strong>LLM: </strong>${escapeHtml(q.llm_answer) || "-"}</p>
+    </div>
+
+    <!-- Team/Agent Answer -->
+    <div class="chat-bubble team">
+      <p><strong>${escapeHtml(q.TMS_agent) || "Agent"}: </strong>${escapeHtml(q.answer_by_team) || "Not Provided"}</p>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="chat-meta-info">
+      <span><strong>Proximity:</strong> ${q.answer_proximity || "N/A"}</span> |
+      <span><strong>Remarks:</strong> ${q.remarks || "N/A"}</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="chat-actions-container">
+        <div class="chat-actions-inline">
+          <div class="action-icon" onclick="toggleStatusDropdown(this)" title="Change Status">
+            <i class="fas fa-tasks"></i>
+          </div>
+          <div class="action-icon" onclick="toggleRemarksInput(this)" title="Add Remarks">
+            <i class="fas fa-comment-dots"></i>
+          </div>
+          <div class="action-icon" onclick="updateStatus(${q.id})" title="Update Status">
+            <i class="fas fa-save"></i>
+          </div>
+          <div class="action-icon view-docs-btn" title="View Source Documents" query-id="${q.id}">
+            <i class="fas fa-file-alt"></i>
+          </div>
+        </div>
+
+        <div class="status-dropdown hidden">
+          <select id="status_${q.id}">
+            ${['Unresolved', 'Resolved', 'In Progress', 'No Action Required']
+              .filter(status => status === q.status)
+              .concat(['Unresolved', 'Resolved', 'No Action Required'].filter(status => status !== q.status))
+              .map(status => `<option ${status === q.status ? "selected" : ""}>${status}</option>`)
+              .join('')}
+          </select>
+        </div>
+
+        <div class="remarks-box hidden">
+          <textarea id="remarks_${q.id}" oninput="updateCharCount(${q.id})" placeholder="Add remarks...">${escapeHtml(q.remarks) || ""}</textarea>
+          <small id="char_count_${q.id}">${(q.remarks || "").length}/300</small>
+        </div>
+
+        <span class="update-feedback" id="feedback_${q.id}"></span>
+    </div>
+  </div>
+`;
+          resultDiv.append(block);
+        });
+      }
+
+      $("#chat_result").data("all-docs", documents);
+    },
+    error: function (xhr, status, error) {
+      $("#loadingSpinner").hide(); // Hide spinner on error
+      console.log("Error Status:", status);
+      console.log("XHR Response:", xhr.responseText);
+      console.log("Error Thrown:", error);
+    },
+  });
+}
+
+
+function showPopup(content, options = {}) {
+  const { title = "Source Documents", closeButtonText = "×", withAnimation = true } = options;
+
+  // Create popup container
+  const popup = document.createElement("div");
+  popup.classList.add("popup");
+
+  // Optional: Add animation class if needed
+  if (withAnimation) {
+    popup.classList.add("fade-in");
+  }
+
+  // Popup content structure (no inline styles!)
+  popup.innerHTML = `
+    <div class="popup-content">
+      <div class="popup-header">
+        <span class="popup-title">${title}</span>
+        <span class="close-btn" onclick="closePopup(this)">${closeButtonText}</span>
+      </div>
+      <div class="popup-body">
+        ${content}
+      </div>
+    </div>
+  `;
+
+  // Append to body
+  document.body.appendChild(popup);
+}
+// Close popup on clicking close button
+function closePopup(buttonElement) {
+    buttonElement.closest(".popup").remove();
+  }
+  function updateStatus(queryId) {
+  const status = document.getElementById(`status_${queryId}`).value;
+  const remarks = document.getElementById(`remarks_${queryId}`).value;
+  const feedbackEl = document.getElementById(`feedback_${queryId}`);
+  const token = document.querySelector("meta[name='csrf-token']")?.content;
+
+  fetch("/sales/api/update-query-status/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": token,
+    },
+    body: JSON.stringify({
+      query_id: queryId,
+      status: status,
+      remarks: remarks,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        feedbackEl.textContent = "✔️ Status updated";
+        feedbackEl.className = "feedback-message success";
+
+        const statusLabel = document.getElementById(`status-label-${queryId}`);
+        if (statusLabel) {
+          statusLabel.textContent = status;
+          statusLabel.className = 'status-badge status';
+          statusLabel.classList.add(status.toLowerCase().replace(/\s+/g, "_"));
+        }
+
+        const block = document.querySelector(`[data-query-id="${queryId}"]`);
+        if (block) {
+          block.setAttribute("data-status", status);
+          const llmBubble = block.querySelector(".chat-bubble.llm");
+          console.log(llmBubble);
+          if (llmBubble) {
+            llmBubble.className = `chat-bubble llm ${getStatusClass(status)}`;
+          }
+        }
+
+      } else {
+        feedbackEl.textContent = "❌ Failed to update";
+        feedbackEl.className = "feedback-message error";
+      }
+    })
+    .catch((error) => {
+      console.error("Update Status Error:", error);
+      feedbackEl.textContent = "⚠️ Error updating status: " + error.message;
+      feedbackEl.className = "feedback-message warning";
+    });
+}
+
+  
+$(document).on("click", ".view-docs-btn", function () {
+      const queryId = $(this).attr("query-id");
+  const docs = $("#chat_result").data("all-docs") || [];
+  
+  console.log("Clicked view-docs icon for query:", queryId); // Debug
+
+  if (!queryId) {
+    alert("Query ID missing.");
+    return;
+  }
+
+  viewSourceDocuments(queryId, docs);
+});
+
+
+  
+function viewSourceDocuments(queryId, docs) {
+  const matchedDocs = docs.filter((doc) => doc.q_id == queryId);
+  if (!matchedDocs.length) {
+    alert("No irrelevant documents found for this query.");
+    return;
+  }
+
+  // Build the document content for display and editing
+  const docBlocks = matchedDocs.map((doc) => {
+    return `
+      <li>
+        <div class="doc-content">
+          <h4>${doc.title || "Untitled"}</h4>
+       <p style="margin: 10px 0; font-size: 14px;">
+  <strong style="color: #555;">Link:</strong>
+  <a href="${doc.file_path}" 
+     target="_blank" 
+     rel="noopener noreferrer"
+     style="color: #007bff; text-decoration: none; margin-left: 5px;">
+    ${doc.file_path || "No path provided"}
+  </a>
+</p>
+
+          <textarea id="doc_content_${doc.id}" rows="5" cols="50">${escapeHtml(doc.content) || ""}</textarea>
+          <div class="edit-footer">
+            <button class="update-embedding-btn" 
+        data-doc-id="${doc.id}" 
+        data-query-id="${queryId}" 
+        onclick="regenerateEmbedding(${doc.id}, ${queryId})">
+  Regenerate Embedding
+</button>
+
+          </div>
+        </div>
+      </li>
+    `;
+  }).join("");
+
+  // Show the documents in the popup
+  showPopup(`
+    <ul>${docBlocks}</ul>
+  `);
+}
+
+// Function to regenerate embeddings and update the vector store
+function regenerateEmbedding(docId, queryId) {
+  const docContent = document.getElementById(`doc_content_${docId}`).value;
+  if (!docContent.trim()) {
+    alert("Document content cannot be empty.");
+    return;
+  }
+  const token = document.querySelector("meta[name='csrf-token']")?.content;
+
+  fetch("/sales/api/regenerate-embedding/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    query_id: queryId,
+    doc_id: docId,
+    new_content: docContent,
+  }),
+})
+  .then(async (response) => {
+    if (!response.ok) {
+      // Get text in case it's HTML error
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status}: ${text}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    if (data.success) {
+      alert("Embedding regenerated and stored successfully!");
+    } else {
+      alert("Failed to regenerate embedding. Error: " + (data.error || "Unknown error"));
+    }
+  })
+  .catch((error) => {
+    console.error("Embedding update failed:", error);
+    alert("Error while updating the embedding: " + error.message);
+  });
+}
+    // Get the appropriate status class
+    function getStatusClass(status) {
+      switch (status.toLowerCase()) {
+        case "unresolved":
+          return "red-bg";
+        case "resolved":
+        return "green-bg";
+        case "no action required":
+          return "green-bg";
+        case "in progress":
+          return "in_progress";
+        default:
+          return "";
+      }
+    }
+  </script>
+  
+  </body>
+</html>

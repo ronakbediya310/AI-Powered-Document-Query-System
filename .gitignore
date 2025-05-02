@@ -1,0 +1,94 @@
+### Byte-compiled / optimized / DLL files ###
+__pycache__/
+*.py[cod]
+*$py.class
+
+### Virtual Environment ###
+venv/
+env/
+*.env
+*.venv
+
+### Django Secret Key and Settings ###
+.env
+settings.py
+
+### Logs and Debugging ###
+logs/
+*.log
+*.out
+*.err
+debug.log
+
+### Django Migrations ###
+**/migrations/*.py
+!**/migrations/__init__.py
+
+### Static and Media Files ###
+staticfiles/
+media/
+
+### Node Modules ###
+node_modules/
+
+### Compiled and Cache Files ###
+*.swp
+*.swo
+*.bak
+.DS_Store
+*.sass-cache
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.eggs/
+
+### IDE and Editor-Specific Files ###
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+### Coverage Reports ###
+htmlcov/
+.coverage
+*.cover
+.hypothesis/
+
+### FAISS Index Files ###
+faiss_index.pkl
+faiss_index_sales.pkl
+### Database Files ###
+*.sqlite3
+*.db
+
+### Pip Dependencies ###
+pip-log.txt
+pip-delete-this-directory.txt
+
+### Celery ###
+celerybeat-schedule
+
+### Gunicorn Logs ###
+gunicorn.log
+gunicorn.err
+
+### Docker ###
+docker-compose.override.yml
+.dockerignore
+
+### Pytest Cache ###
+.pytest_cache/
+
+### MyPy Cache ###
+.mypy_cache/
+
+### Jupyter Notebook Checkpoints ###
+.ipynb-checkpoints/
+
+### Translation Files ###
+*.mo
+settings.py
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat ID List</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #eef2f7;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 60%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        input {
+            padding: 8px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Search Chat IDs</h2>
+        <label>From:</label> <input type="datetime-local" id = "from_date">
+        <label>To:</label> <input type="datetime-local" id = "to_date">
+        <button onclick="fetchChatIDs()">Search</button>
+
+        <h3>Chat ID List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Chat ID</th>
+                </tr>
+            </thead>
+            <tbody id="chat_table_body"></tbody>
+        </table>
+    </div>
+
+    <script>
+       function fetchChatIDs() {
+        let fromDate = $('#from_date').val(); 
+        let toDate = $('#to_date').val();
+    
+
+    console.log("From Date (Final):", fromDate);
+    console.log("To Date (Final):", toDate);
+
+    $.ajax({
+        url: `/api/list-chat-ids/?from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}`,
+        method: "GET",
+        success: function(response) {
+            console.log("Response:", response);
+            $('#chat_table_body').empty();
+            response.forEach((chat, index) => {
+                $('#chat_table_body').append(`<tr>
+                      <td>${index + 1}</td>
+                      <td><a href="/chat-details/${chat.chat_id}/">${chat.chat_id}</a></td>
+                </tr>`);
+            });
+        },
+        error: function() {
+            alert("Error fetching chat IDs");
+        }
+    });
+}
+
+    </script>
+</body>
+</html>

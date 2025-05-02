@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document Q&A</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+
+  <body>
+    <div class="main-container">
+      <header class="modern-header">
+        <nav class="modern-navbar">
+          <ul class="nav-links">
+            <li><a href="/"><span>🏠</span> Document Q&A</a></li>
+            <li><a href="/list/"><span>📄</span> Doc Chats</a></li>
+            <li><a href="/sales/"><span>📊</span> Sales Q&A</a></li>
+            <li><a href="/sales/list/"><span>📁</span> Sales Chats</a></li>
+            <li><a href="/logout/">Logout</a></li>
+          </ul>
+          <div class="nav-utilities">
+            <button onclick="history.back()" class="back-btn">← Back</button>
+            <div class="toggle-container">
+              <label for="toggle-upload">Show Upload Section</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-upload" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </nav>
+      </header>
+      
+      <!-- Upload Section -->
+      <div id="upload-container">
+        <section class="upload-section">
+          <h2>Upload a Document (PDF, JSON, CSV)</h2>
+          <form method="post" enctype="multipart/form-data" class="form">
+            {% csrf_token %}
+            <label for="document-upload" class="upload-label"
+              >Choose a File</label
+            >
+            <input
+              type="file"
+              id="document-upload"
+              name="document"
+              class="file-input"
+              accept=".pdf,.json,.csv"
+            />
+            <button type="submit" class="btn">Upload</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Query & Response Container -->
+      <div class="chat-container">
+        <!-- Chat History Section -->
+        <div class="chat-history" id="chat-history">
+          <!-- Chat messages will be dynamically injected here -->
+          <div id="chat-loader" class="loader" style="display: none"></div>
+        </div>
+
+        <!-- Input Form -->
+        <form method="post" class="form chat-form" id="query-form">
+          {% csrf_token %}
+          <div class="input-container">
+            <textarea
+              id="query"
+              name="query"
+              placeholder="Ask a question..."
+              class="text-input"
+            ></textarea>
+            <button type="submit" class="btn">Send</button>
+          </div>
+        </form>
+
+        <button id="fetch-docs-btn" class="btn" style="display: none">
+          Fetch Source Documents
+        </button>
+
+        <div id="source-docs-container" style="display: none">
+          <h4>📄 Source Documents</h4>
+          <div id="source-docs-list" class="docs-list"></div>
+        </div>
+      </div>
+
+      <!-- Messages & Error Handling -->
+      {% if message %}
+      <div class="message-box">{{ message }}</div>
+      {% endif %} {% if error %}
+      <div class="error-box">{{ error }}</div>
+      {% endif %}
+    </div>
+
+    <script>
+     
+      $(document).ready(function () {
+        var lastQuery = ""; // Store the last query
+        var lastQueries = [];
+        var lastResponses = [];
+
+        $("#toggle-upload").change(function () {
+          $("#upload-container").slideToggle(300, function () {
+            $(".query-response-container").toggleClass(
+              "full-height",
+              !$("#upload-container").is(":visible")
+            );
+          });
+        });
+
+        $(".message-box").fadeIn().delay(3000).fadeOut();
+
+        // AJAX Query Form Submission
+        $("#query-form").submit(function (event) {
+          event.preventDefault();
+          var queryText = $("#query").val().trim();
+          $("#fetch-docs-btn, #source-docs-container").hide();
+          $("#query").val("");
+
+          if (!queryText) {
+            alert("Please enter a question.");
+            return;
+          }
+
+          $("#chat-loader").show();
+          lastQuery = queryText; // Store the query for later use
+
+          $(
+            "#res, #restime, #loader, .answer, .response-time, #message-response"
+          ).hide();
+
+          var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+
+          $.ajax({
+            url: "{% url 'query_api' %}",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ 
+        query: queryText, 
+        token: "a7222a92-8b10-4050-8b26-894dc6f45918" 
+        }),
+            dataType: "json",
+            success: function (response) {
+              $("#res, #restime").show();
+              $(".answer")
+                .text(response.answer || "No answer received.")
+                .show();
+              console.log(response.answer_in_english)
+              // Store only the last 3 queries & responses
+              if (lastQueries.length >= 3) {
+                lastQueries.shift();
+                lastResponses.shift();
+              }
+              lastQueries.push(queryText);
+              lastResponses.push(response.answer_in_english || "No answer received.");
+
+              updateChatHistory();
+
+              $("#fetch-docs-btn").fadeIn();
+              $("#message-response")
+                .text("Response received successfully!")
+                .fadeIn()
+                .delay(3000)
+                .fadeOut();
+            },
+            error: function (xhr, status, error) {
+                console.log("Error Status:", status);
+                console.log("XHR Response:", xhr.responseText);
+                console.log("Error Thrown:", error);
+            },
+
+            complete: function () {
+              $("#chat-loader").hide();
+            },
+          });
+        });
+
+        function updateChatHistory() {
+          var historyContainer = $("#chat-history");
+          historyContainer.children(":not(#chat-loader)").remove();
+          let lastMessageId = "last-message";
+
+          for (let i = 0; i < lastQueries.length; i++) {
+            let userMessage = `<div class="chat-message user">
+                                <div class="chat-bubble ">Question: ${lastQueries[i]}</div>
+                               </div>`;
+            let botMessage = `<div class="chat-message bot" id="${
+              i === lastQueries.length - 1 ? lastMessageId : ""
+            }">
+                                <div class="chat-bubble ">Answer: ${
+                                  lastResponses[i]
+                                }</div>
+                               </div>`;
+
+            historyContainer.append(userMessage);
+            historyContainer.append(botMessage);
+          }
+
+          let lastMessage = $("#" + lastMessageId);
+          if (lastMessage.length) {
+            lastMessage[0].scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            lastMessage.focus();
+          } else {
+            historyContainer.animate(
+              { scrollTop: historyContainer.prop("scrollHeight") },
+              500
+            );
+          }
+        }
+
+        // Fetch Source Documents
+        $("#fetch-docs-btn").click(function () {
+          if (!lastQuery) {
+            alert("Please submit a question first.");
+            return;
+          }
+
+          var csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+
+          $.ajax({
+            url: "{% url 'index' %}",
+            type: "POST",
+            data: {
+              fetch: true,
+              query: lastQuery,
+              csrfmiddlewaretoken: csrfToken,
+            },
+            dataType: "json",
+            success: function (response) {
+              $("#source-docs-container").fadeIn();
+              $("#source-docs-list").empty();
+
+              var documents = response.documents || [];
+              console.log(response);
+
+              if (documents.length === 0) {
+                $("#source-docs-list").html(
+                  '<p class="no-docs-message"> No relevant source documents found.</p>'
+                );
+                return;
+              }
+
+              documents.forEach(function (doc, index) {
+                let docTitle = doc.title ? doc.title : `Document ${index + 1}`;
+                let docSource = doc.source || "Unknown Source";
+                let filePath = doc.file_path || "#";
+
+                let listItem = `
+                        <div class="document-item">
+                            <p class="doc-title">${
+                              index + 1
+                            }. <strong>${docTitle}</strong></p>
+                            <p class="doc-source">Source Type: ${docSource}</p>
+                            <p><a href="${filePath}" target="_blank" class="doc-link">🔗 Open Document</a></p>
+                        </div>
+                    `;
+
+                $("#source-docs-list").append(listItem);
+              });
+            },
+            error: function () {
+              alert("Error fetching source documents. Please try again.");
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
