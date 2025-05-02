@@ -126,7 +126,3 @@ An advanced AI-powered query resolution platform built using Django, AI models, 
 
 ---
 
-## 📄 License
-
-This project is open-sourced under the MIT License.  
-See the [LICENSE](LICENSE) file for details.
